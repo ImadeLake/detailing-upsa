@@ -7,9 +7,11 @@ import { Check, ChevronDown, Globe2, X } from "lucide-react";
 export function CountriesMultiSelect({
   options,
   selected,
+  onChange,
 }: {
   options: { name: string; events: number }[];
   selected: string[];
+  onChange?: (next: string[]) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState<Set<string>>(() => new Set(selected));
@@ -55,6 +57,20 @@ export function CountriesMultiSelect({
     return () => document.removeEventListener("mousedown", onDocClick);
   }, [open]);
 
+  // Notify parent when popover closes if selection changed.
+  const lastNotified = useRef<string[]>(selected);
+  useEffect(() => {
+    if (open) return;
+    if (!onChange) return;
+    const arr = [...value];
+    const same =
+      arr.length === lastNotified.current.length &&
+      arr.every((v, i) => v === lastNotified.current[i]);
+    if (same) return;
+    lastNotified.current = arr;
+    onChange(arr);
+  }, [open, value, onChange, selected]);
+
   const toggle = (name: string) => {
     setValue((prev) => {
       const next = new Set(prev);
@@ -86,17 +102,17 @@ export function CountriesMultiSelect({
         ref={buttonRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="input inline-flex items-center gap-2 text-sm min-w-[180px]"
+        className="input inline-flex items-center gap-2 min-w-[200px]"
         aria-expanded={open}
       >
-        <Globe2 size={14} style={{ color: "var(--muted)" }} />
+        <Globe2 size={13} style={{ color: "var(--ink-mute)" }} />
         <span className="flex-1 text-left truncate">{label}</span>
         {valueArr.length > 0 && (
-          <span className="tag" style={{ padding: "0.1rem 0.5rem" }}>
+          <span className="tag tag-primary" style={{ padding: "0.1rem 0.5rem" }}>
             {valueArr.length}
           </span>
         )}
-        <ChevronDown size={14} style={{ color: "var(--muted)" }} />
+        <ChevronDown size={13} style={{ color: "var(--ink-mute)" }} />
       </button>
 
       {open && coords && typeof document !== "undefined" &&
@@ -113,14 +129,14 @@ export function CountriesMultiSelect({
               zIndex: 1000,
             }}
           >
-            <div className="flex items-center justify-between px-2 py-1.5 text-xs" style={{ color: "var(--muted)" }}>
+            <div className="flex items-center justify-between px-2 py-2 text-[12px]" style={{ color: "var(--ink-mute)" }}>
               <span>{valueArr.length} sélectionné(s)</span>
               <div className="flex items-center gap-2">
-                <button type="button" className="hover:underline" onClick={all}>
+                <button type="button" className="hover:text-[color:var(--primary)]" onClick={all}>
                   Tout
                 </button>
                 <span>·</span>
-                <button type="button" className="hover:underline" onClick={clear}>
+                <button type="button" className="hover:text-[color:var(--primary)]" onClick={clear}>
                   Effacer
                 </button>
               </div>
@@ -134,26 +150,25 @@ export function CountriesMultiSelect({
                     <button
                       type="button"
                       onClick={() => toggle(o.name)}
-                      className="w-full flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-[color-mix(in_oklab,var(--foreground)_5%,transparent)]"
+                      className="w-full flex items-center justify-between gap-2 px-2 py-1.5 text-[13px] rounded hover:bg-[var(--surface-2)]"
                       role="option"
                       aria-selected={checked}
                     >
-                      <span className="flex items-center gap-2">
+                      <span className="flex items-center gap-2.5">
                         <span
-                          className="inline-flex h-4 w-4 items-center justify-center rounded border"
+                          className="inline-flex h-4 w-4 items-center justify-center"
                           style={{
-                            borderColor: checked
-                              ? "color-mix(in oklab, var(--accent) 80%, transparent)"
-                              : "var(--border)",
-                            background: checked ? "var(--accent)" : "transparent",
+                            border: checked ? "1px solid var(--primary)" : "1px solid var(--hairline-strong)",
+                            background: checked ? "var(--primary)" : "var(--surface)",
                             color: "white",
+                            borderRadius: 3,
                           }}
                         >
                           {checked && <Check size={11} strokeWidth={3} />}
                         </span>
-                        <span>{o.name}</span>
+                        <span style={{ color: "var(--ink)" }}>{o.name}</span>
                       </span>
-                      <span className="tabular-nums text-xs" style={{ color: "var(--muted)" }}>
+                      <span className="mono tabular-nums text-[11.5px]" style={{ color: "var(--ink-mute)" }}>
                         {o.events.toLocaleString("fr-FR")}
                       </span>
                     </button>
@@ -172,7 +187,7 @@ export function CountriesMultiSelect({
           onClick={clear}
           aria-label="Effacer le filtre pays"
           className="absolute -top-2 -right-2 inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px]"
-          style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--muted)" }}
+          style={{ background: "var(--surface)", border: "1px solid var(--hairline-strong)", color: "var(--ink-mute)" }}
         >
           <X size={10} />
         </button>

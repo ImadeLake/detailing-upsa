@@ -2,11 +2,9 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import {
   Activity,
-  Calendar,
   Clock,
   Globe2,
   LogOut,
-  RefreshCcw,
   Users,
   WifiOff,
 } from "lucide-react";
@@ -21,12 +19,13 @@ import {
   listCountries,
   type Filters,
 } from "@/lib/queries";
-import { formatDuration, formatNumber, formatPercent } from "@/lib/format";
+import { formatDuration, formatNumber } from "@/lib/format";
 import { AdvDurationPie, MonthlyChart, HBarChart } from "@/components/Charts";
 import { AdvGrid } from "@/components/AdvGrid";
-import { CountriesMultiSelect } from "@/components/CountriesMultiSelect";
+import { FiltersBar } from "@/components/FiltersBar";
 import { ImportButton } from "@/components/ImportButton";
 import { AUTH_COOKIE } from "@/lib/auth";
+import { AnimatedCounter, Reveal } from "@/components/Motion";
 
 export const dynamic = "force-dynamic";
 
@@ -77,174 +76,175 @@ export default async function Home({
 
   return (
     <div className="app-bg min-h-screen">
-      <header className="sticky top-0 z-30 border-b backdrop-blur-md" style={{ borderColor: "var(--border)", background: "color-mix(in oklab, var(--background) 78%, transparent)" }}>
-        <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between">
+      {/* ─── Header ────────────────────────────────────────── */}
+      <header className="hairline-bottom sticky top-0 z-30 backdrop-blur-md" style={{ background: "color-mix(in oklab, var(--bg) 88%, transparent)" }}>
+        <div className="mx-auto max-w-[1320px] px-8 py-3 flex items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[color-mix(in_oklab,var(--accent)_15%,transparent)] text-[color-mix(in_oklab,var(--accent)_85%,var(--foreground))]">
-              <Activity size={18} />
+            <span
+              className="inline-flex h-8 w-8 items-center justify-center rounded"
+              style={{ background: "var(--primary-soft)", color: "var(--primary)" }}
+            >
+              <Activity size={15} />
             </span>
             <div>
-              <h1 className="text-sm font-semibold tracking-tight">Detailing Dashboard</h1>
-              <p className="text-xs" style={{ color: "var(--muted)" }}>
+              <div className="text-[14px] font-semibold tracking-tight" style={{ color: "var(--ink)" }}>
+                Detailing Dashboard
+              </div>
+              <div className="text-[11.5px] mt-0.5" style={{ color: "var(--ink-mute)" }}>
                 {formatRangeLabel(fromVal, toVal)}
-              </p>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <ImportButton />
             <form action={logoutAction}>
-              <button className="btn-ghost text-sm inline-flex items-center gap-2">
-                <LogOut size={14} /> Déconnexion
+              <button className="btn-ghost inline-flex items-center gap-2">
+                <LogOut size={13} /> Déconnexion
               </button>
             </form>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-8 space-y-6">
-        {/* Filtres */}
-        <form className="card card-elevated p-4 flex flex-wrap items-end gap-3">
-          <div className="flex items-center gap-2 mr-2 text-sm" style={{ color: "var(--muted)" }}>
-            <Calendar size={16} />
-            <span>Période</span>
-          </div>
-          <label className="flex flex-col text-xs" style={{ color: "var(--muted)" }}>
-            <span className="mb-1">Du</span>
-            <input type="date" name="from" defaultValue={fromVal} className="input" />
-          </label>
-          <label className="flex flex-col text-xs" style={{ color: "var(--muted)" }}>
-            <span className="mb-1">Au</span>
-            <input type="date" name="to" defaultValue={toVal} className="input" />
-          </label>
-          <div className="flex flex-col text-xs" style={{ color: "var(--muted)" }}>
-            <span className="mb-1">Pays</span>
-            <CountriesMultiSelect
-              options={countryOptions}
-              selected={filters.countries ?? []}
-            />
-          </div>
-          <div className="flex items-center gap-2 ml-auto">
-            <button type="submit" className="btn-primary text-sm">
-              Appliquer
-            </button>
-            <a href="/" className="btn-ghost text-sm inline-flex items-center gap-2">
-              <RefreshCcw size={14} /> Réinitialiser
-            </a>
-          </div>
-        </form>
+      <main className="mx-auto max-w-[1320px] px-8 py-8 space-y-8">
+        {/* ─── Filtres ───────────────────────────────────────── */}
+        <Reveal as="section">
+          <FiltersBar
+            defaultFrom={fromVal}
+            defaultTo={toVal}
+            countryOptions={countryOptions}
+            selectedCountries={filters.countries ?? []}
+          />
+        </Reveal>
 
-        {/* KPIs */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* ─── KPIs ──────────────────────────────────────────── */}
+        <section
+          className="grid grid-cols-2 lg:grid-cols-4 gap-px border rounded-md overflow-hidden"
+          style={{ background: "var(--hairline)", borderColor: "var(--hairline)" }}
+        >
           <Kpi
             label="Clics"
-            value={formatNumber(kpis.events ?? 0)}
-            icon={<Activity size={16} />}
-            tint="var(--accent)"
+            value={kpis.events ?? 0}
+            icon={<Activity size={14} />}
+            delay={0.04}
           />
           <Kpi
             label="Utilisateurs actifs"
-            value={formatNumber(kpis.active_users ?? 0)}
-            icon={<Users size={16} />}
-            tint="var(--accent-2)"
+            value={kpis.active_users ?? 0}
+            icon={<Users size={14} />}
+            delay={0.10}
           />
           <Kpi
             label="Temps total"
-            value={formatDuration(kpis.total_duration ?? 0)}
-            icon={<Clock size={16} />}
-            tint="var(--success)"
+            value={kpis.total_duration ?? 0}
+            icon={<Clock size={14} />}
+            delay={0.16}
+            format="duration"
           />
           <Kpi
             label="Part offline"
-            value={formatPercent(kpis.offline_ratio ?? 0)}
-            icon={<WifiOff size={16} />}
-            tint="var(--warning)"
+            value={(kpis.offline_ratio ?? 0) * 100}
+            icon={<WifiOff size={14} />}
+            delay={0.22}
+            format="percent"
           />
         </section>
 
-        {/* Activité */}
-        <MonthlyChart data={monthly.data} advs={monthly.advs} />
+        {/* ─── Activité ──────────────────────────────────────── */}
+        <Reveal as="section" delay={0.04}>
+          <MonthlyChart data={monthly.data} advs={monthly.advs} />
+        </Reveal>
 
-        {/* Top pays */}
-        <Card
-          title="Top pays"
-          subtitle="Volume de clics par pays"
-          icon={<Globe2 size={14} />}
-        >
-          <HBarChart
-            data={topCountries as unknown as Record<string, string | number>[]}
-            labelKey="country"
-            valueKey="events"
-          />
-        </Card>
+        {/* ─── Géographie + Répartition ──────────────────────── */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Reveal as="div" delay={0.04}>
+            <Card title="Top pays" subtitle="Volume de clics par pays" icon={<Globe2 size={14} />}>
+              <HBarChart
+                data={topCountries as unknown as Record<string, string | number>[]}
+                labelKey="country"
+                valueKey="events"
+              />
+            </Card>
+          </Reveal>
+          <Reveal as="div" delay={0.10}>
+            <Card title="Temps par ADV" subtitle="Somme des durées sur Produits/ADV/…">
+              <AdvDurationPie
+                data={advDuration as { adv: string; total_duration: number; events: number }[]}
+              />
+            </Card>
+          </Reveal>
+        </section>
 
-        {/* Pie ADV */}
-        <Card
-          title="Temps passé par produit ADV"
-          subtitle="Somme des durées sur les pages sous Produits/ADV/ADV …"
-        >
-          <AdvDurationPie
-            data={advDuration as { adv: string; total_duration: number; events: number }[]}
-          />
-        </Card>
-
-        {/* Top pages par ADV — toutes en parallèle */}
-        <section className="space-y-3">
-          <div className="flex items-end justify-between">
+        {/* ─── Top pages par ADV ─────────────────────────────── */}
+        <Reveal as="section" delay={0.04}>
+          <div className="flex items-end justify-between mb-3">
             <div>
-              <h2 className="text-sm font-semibold tracking-tight">Top pages par ADV</h2>
-              <p className="text-xs" style={{ color: "var(--muted)" }}>
+              <h2 className="text-base font-semibold tracking-tight" style={{ color: "var(--ink)" }}>
+                Top pages par ADV
+              </h2>
+              <p className="text-[12.5px] mt-0.5" style={{ color: "var(--ink-mute)" }}>
                 Pages les plus consultées (durée totale) au sein de chaque produit ADV
               </p>
             </div>
           </div>
           <AdvGrid items={advTopPages} />
-        </section>
+        </Reveal>
 
-        {/* Top users */}
-        <Card title="Top utilisateurs" subtitle="Triés par volume de clics">
-          <div className="overflow-x-auto -mx-2">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left" style={{ color: "var(--muted)" }}>
-                  <th className="py-2 px-2 font-medium">Utilisateur</th>
-                  <th className="py-2 px-2 font-medium">Pays</th>
-                  <th className="py-2 px-2 font-medium text-right">Clics</th>
-                  <th className="py-2 px-2 font-medium text-right">Temps total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {topUsers.map((u, i) => (
-                  <tr
-                    key={`${u.user}-${u.country}`}
-                    className="table-row border-t"
-                    style={{ borderColor: "var(--border)" }}
-                  >
-                    <td className="py-2.5 px-2">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium" style={{ background: "color-mix(in oklab, var(--accent) 12%, transparent)", color: "color-mix(in oklab, var(--accent) 80%, var(--foreground))" }}>
-                          {i + 1}
-                        </span>
-                        <span>{u.user}</span>
-                      </div>
-                    </td>
-                    <td className="py-2.5 px-2">
-                      <span className="tag">{u.country}</span>
-                    </td>
-                    <td className="py-2.5 px-2 text-right tabular-nums">{formatNumber(u.events)}</td>
-                    <td className="py-2.5 px-2 text-right tabular-nums" style={{ color: "var(--muted)" }}>
-                      {formatDuration(u.total_duration)}
-                    </td>
+        {/* ─── Top users ─────────────────────────────────────── */}
+        <Reveal as="section" delay={0.04}>
+          <Card title="Top utilisateurs" subtitle="Triés par volume de clics">
+            <div className="overflow-x-auto -mx-1">
+              <table className="w-full text-[13px]">
+                <thead>
+                  <tr className="text-left">
+                    <th className="py-2 px-2 label">Utilisateur</th>
+                    <th className="py-2 px-2 label">Pays</th>
+                    <th className="py-2 px-2 label text-right">Clics</th>
+                    <th className="py-2 px-2 label text-right">Temps total</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+                </thead>
+                <tbody>
+                  {topUsers.map((u, i) => (
+                    <tr
+                      key={`${u.user}-${u.country}`}
+                      className="table-row"
+                      style={{ borderTop: "1px solid var(--hairline)" }}
+                    >
+                      <td className="py-2.5 px-2">
+                        <div className="flex items-center gap-3">
+                          <span className="mono tabular-nums text-[11px]" style={{ color: "var(--ink-mute)" }}>
+                            {String(i + 1).padStart(2, "0")}
+                          </span>
+                          <span style={{ color: "var(--ink)" }}>{u.user}</span>
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-2">
+                        <span className="tag">{u.country}</span>
+                      </td>
+                      <td className="py-2.5 px-2 text-right mono tabular-nums" style={{ color: "var(--ink)" }}>
+                        {formatNumber(u.events)}
+                      </td>
+                      <td className="py-2.5 px-2 text-right mono tabular-nums" style={{ color: "var(--ink-dim)" }}>
+                        {formatDuration(u.total_duration)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </Reveal>
 
-        <footer className="py-6 text-center text-xs" style={{ color: "var(--muted)" }}>
-          {formatNumber(kpis.events ?? 0)} clics · données du{" "}
-          {bounds?.min ? new Date(bounds.min).toLocaleDateString("fr-FR") : "…"} au{" "}
-          {bounds?.max ? new Date(bounds.max).toLocaleDateString("fr-FR") : "…"}
+        {/* ─── Footer ────────────────────────────────────────── */}
+        <footer className="pt-6 pb-12 hairline-top">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 text-[12px]" style={{ color: "var(--ink-mute)" }}>
+            <span>{formatNumber(kpis.events ?? 0)} clics</span>
+            <span>
+              Données du{" "}
+              {bounds?.min ? new Date(bounds.min).toLocaleDateString("fr-FR") : "…"} au{" "}
+              {bounds?.max ? new Date(bounds.max).toLocaleDateString("fr-FR") : "…"}
+            </span>
+          </div>
         </footer>
       </main>
     </div>
@@ -255,31 +255,36 @@ function Kpi({
   label,
   value,
   icon,
-  tint,
+  delay = 0,
+  format = "number",
 }: {
   label: string;
-  value: string;
+  value: number;
   icon: React.ReactNode;
-  tint: string;
+  delay?: number;
+  format?: "number" | "duration" | "percent";
 }) {
   return (
-    <div className="card card-elevated kpi-glow p-5">
-      <div className="flex items-center justify-between">
-        <span className="text-xs uppercase tracking-wide" style={{ color: "var(--muted)" }}>
-          {label}
-        </span>
+    <Reveal
+      delay={delay}
+      className="kpi-cell bg-[var(--surface)] p-5 transition-colors hover:bg-[color-mix(in_oklab,var(--primary-soft)_30%,var(--surface))]"
+    >
+      <div className="flex items-center justify-between mb-5">
+        <span className="label">{label}</span>
         <span
-          className="inline-flex h-8 w-8 items-center justify-center rounded-lg"
+          className="inline-flex h-7 w-7 items-center justify-center rounded"
           style={{
-            background: `color-mix(in oklab, ${tint} 14%, transparent)`,
-            color: `color-mix(in oklab, ${tint} 85%, var(--foreground))`,
+            background: "var(--primary-soft)",
+            color: "var(--primary)",
           }}
         >
           {icon}
         </span>
       </div>
-      <div className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">{value}</div>
-    </div>
+      <div className="kpi-num text-[32px] tabular-nums">
+        <AnimatedCounter value={value} format={format} />
+      </div>
+    </Reveal>
   );
 }
 
@@ -300,11 +305,11 @@ function Card({
     <section className="card card-elevated p-5">
       <header className="mb-4 flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-sm font-semibold tracking-tight flex items-center gap-2">
+          <h2 className="text-[14.5px] font-semibold tracking-tight flex items-center gap-2" style={{ color: "var(--ink)" }}>
             {icon} {title}
           </h2>
           {subtitle && (
-            <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
+            <p className="text-[12.5px] mt-0.5" style={{ color: "var(--ink-mute)" }}>
               {subtitle}
             </p>
           )}

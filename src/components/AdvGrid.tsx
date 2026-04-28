@@ -72,11 +72,11 @@ function SortableItem({ id, children }: { id: string; children: React.ReactNode 
         {...attributes}
         {...listeners}
         aria-label="Glisser pour réordonner"
-        className="absolute top-3 right-3 z-10 inline-flex h-7 w-7 items-center justify-center rounded-md cursor-grab active:cursor-grabbing opacity-50 hover:opacity-100 transition-opacity"
-        style={{ color: "var(--muted)" }}
+        className="absolute top-3 right-3 z-10 inline-flex h-7 w-7 items-center justify-center rounded cursor-grab active:cursor-grabbing opacity-40 hover:opacity-100 hover:bg-[var(--surface-2)] transition-all"
+        style={{ color: "var(--ink-mute)" }}
         onClick={(e) => e.preventDefault()}
       >
-        <GripVertical size={16} />
+        <GripVertical size={14} />
       </button>
       {children}
     </div>
@@ -153,11 +153,12 @@ export function AdvGrid({ items }: { items: AdvData[] }) {
 
   return (
     <>
-      <div className="flex justify-end -mt-1 mb-2">
+      <div className="flex justify-end -mt-1 mb-3">
         <button
           type="button"
           onClick={reset}
-          className="btn-ghost text-xs inline-flex items-center gap-1.5"
+          className="text-[12px] inline-flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[var(--surface-2)]"
+          style={{ color: "var(--ink-dim)" }}
         >
           <RotateCcw size={12} /> Réinitialiser l&apos;ordre
         </button>

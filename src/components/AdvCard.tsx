@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { HBarChart } from "./Charts";
 
 function formatDurationShort(sec: number): string {
@@ -29,43 +30,53 @@ export function AdvCard({
   const totalEvents = pages.reduce((s, p) => s + p.events, 0);
 
   return (
-    <div className="card card-elevated p-4">
+    <div className="card card-elevated p-4 transition-colors hover:border-[color:var(--hairline-strong)]">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="w-full flex items-center justify-between gap-3 text-left pr-9"
         aria-expanded={open}
       >
-        <div className="flex items-center gap-2 min-w-0">
-          <ChevronDown
-            size={16}
-            className="shrink-0 transition-transform"
-            style={{
-              transform: open ? "rotate(0deg)" : "rotate(-90deg)",
-              color: "var(--muted)",
-            }}
-          />
-          <h3 className="text-sm font-semibold truncate">{adv}</h3>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <motion.span
+            animate={{ rotate: open ? 0 : -90 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="shrink-0 inline-flex"
+            style={{ color: "var(--ink-mute)" }}
+          >
+            <ChevronDown size={14} />
+          </motion.span>
+          <h3 className="text-[14px] font-semibold tracking-tight truncate" style={{ color: "var(--ink)" }}>
+            {adv}
+          </h3>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs tabular-nums" style={{ color: "var(--muted)" }}>
+          <span className="mono tabular-nums text-[11.5px]" style={{ color: "var(--ink-mute)" }}>
             {totalEvents.toLocaleString("fr-FR")} clics
           </span>
-          <span className="tag">{formatDurationShort(totalSec)}</span>
+          <span className="tag tag-primary">{formatDurationShort(totalSec)}</span>
         </div>
       </button>
 
-      {open && (
-        <>
-          <div className="divider my-3" />
-          <HBarChart
-            data={pages as unknown as Record<string, string | number>[]}
-            labelKey="page"
-            valueKey="total_duration"
-            color="#a855f7"
-          />
-        </>
-      )}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            style={{ overflow: "hidden" }}
+          >
+            <div className="divider my-3" />
+            <HBarChart
+              data={pages as unknown as Record<string, string | number>[]}
+              labelKey="page"
+              valueKey="total_duration"
+              color="#2563eb"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

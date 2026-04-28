@@ -62,10 +62,10 @@ export function ImportButton() {
         type="button"
         onClick={onPick}
         disabled={loading}
-        className="btn-ghost text-sm inline-flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+        className="btn-ghost inline-flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
         aria-busy={loading}
       >
-        {loading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+        {loading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
         {loading ? "Import…" : "Importer"}
       </button>
       <StatusPill status={status} />
@@ -78,8 +78,8 @@ function StatusPill({ status }: { status: Status }) {
   if (status.kind === "loading") {
     return (
       <span
-        className="text-xs truncate max-w-[180px]"
-        style={{ color: "var(--muted)" }}
+        className="text-[12px] truncate max-w-[200px]"
+        style={{ color: "var(--ink-mute)" }}
         title={status.name}
       >
         {status.name}
@@ -90,30 +90,33 @@ function StatusPill({ status }: { status: Status }) {
     const dt = (status.durationMs / 1000).toFixed(1);
     return (
       <span
-        className="text-xs inline-flex items-center gap-1.5 rounded-full px-2.5 py-1"
+        className="text-[11.5px] inline-flex items-center gap-1.5 px-2 py-1 rounded-full"
         style={{
-          background: "color-mix(in oklab, #10b981 12%, transparent)",
-          color: "#047857",
-          border: "1px solid color-mix(in oklab, #10b981 35%, transparent)",
+          background: "color-mix(in oklab, var(--success) 10%, transparent)",
+          color: "var(--success)",
+          border: "1px solid color-mix(in oklab, var(--success) 30%, transparent)",
+          fontWeight: 500,
         }}
         title={`Vu: ${status.seen} · Ignorés: ${status.skipped}`}
       >
-        <Check size={12} />
-        {status.inserted.toLocaleString("fr-FR")} lignes · {dt}s
+        <Check size={11} />
+        <span className="mono tabular-nums">{status.inserted.toLocaleString("fr-FR")}</span>
+        <span style={{ color: "color-mix(in oklab, var(--success) 70%, var(--ink-mute))" }}>· {dt}s</span>
       </span>
     );
   }
   return (
     <span
-      className="text-xs inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 max-w-[260px]"
+      className="text-[11.5px] inline-flex items-center gap-1.5 px-2 py-1 max-w-[260px] rounded-full"
       style={{
-        background: "color-mix(in oklab, var(--danger) 12%, transparent)",
+        background: "color-mix(in oklab, var(--danger) 10%, transparent)",
         color: "var(--danger)",
-        border: "1px solid color-mix(in oklab, var(--danger) 35%, transparent)",
+        border: "1px solid color-mix(in oklab, var(--danger) 30%, transparent)",
+        fontWeight: 500,
       }}
       title={status.message}
     >
-      <TriangleAlert size={12} />
+      <TriangleAlert size={11} />
       <span className="truncate">{status.message}</span>
     </span>
   );
