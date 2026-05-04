@@ -1,6 +1,6 @@
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { Activity } from "lucide-react";
 import { AUTH_COOKIE, checkPin, createAuthToken } from "@/lib/auth";
 
 async function loginAction(formData: FormData) {
@@ -32,12 +32,14 @@ export default async function LoginPage({
     <main className="auth-shell px-6">
       <form action={loginAction} className="card card-elevated w-full max-w-sm p-7 space-y-6">
         <div className="space-y-3">
-          <span
-            className="inline-flex h-9 w-9 items-center justify-center rounded"
-            style={{ background: "var(--primary-soft)", color: "var(--primary)" }}
-          >
-            <Activity size={16} />
-          </span>
+          <Image
+            src="/logo-upsa.svg"
+            alt="UPSA"
+            width={164}
+            height={56}
+            priority
+            className="h-10 w-auto"
+          />
           <h1 className="text-[18px] font-semibold tracking-tight" style={{ color: "var(--ink)" }}>
             Detailing Dashboard
           </h1>

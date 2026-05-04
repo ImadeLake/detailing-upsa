@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown, Globe2, X } from "lucide-react";
-import { countryFlag } from "@/lib/format";
+import { Flag } from "./Flag";
 
 export function CountriesMultiSelect({
   options,
@@ -91,11 +91,16 @@ export function CountriesMultiSelect({
 
   const valueArr = [...value];
   const label =
-    valueArr.length === 0
-      ? "Tous les pays"
-      : valueArr.length === 1
-      ? `${countryFlag(valueArr[0])} ${valueArr[0]}`
-      : `${valueArr.length} pays`;
+    valueArr.length === 0 ? (
+      "Tous les pays"
+    ) : valueArr.length === 1 ? (
+      <>
+        <Flag country={valueArr[0]} className="mr-1.5" />
+        {valueArr[0]}
+      </>
+    ) : (
+      `${valueArr.length} pays`
+    );
 
   return (
     <div className="relative" ref={wrapperRef}>
@@ -173,7 +178,7 @@ export function CountriesMultiSelect({
                         >
                           {checked && <Check size={11} strokeWidth={3} />}
                         </span>
-                        <span aria-hidden className="text-[14px] leading-none">{countryFlag(o.name)}</span>
+                        <Flag country={o.name} />
                         <span style={{ color: "var(--ink)" }}>{o.name}</span>
                       </span>
                       <span className="mono tabular-nums text-[11.5px]" style={{ color: "var(--ink-mute)" }}>

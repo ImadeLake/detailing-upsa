@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import {
@@ -19,7 +20,8 @@ import {
   listCountries,
   type Filters,
 } from "@/lib/queries";
-import { countryFlag, formatDuration, formatNumber } from "@/lib/format";
+import { formatDuration, formatNumber } from "@/lib/format";
+import { Flag } from "@/components/Flag";
 import { AdvDurationPie, MonthlyChart, HBarChart } from "@/components/Charts";
 import { AdvGrid } from "@/components/AdvGrid";
 import { FiltersBar } from "@/components/FiltersBar";
@@ -80,13 +82,15 @@ export default async function Home({
       <header className="hairline-bottom sticky top-0 z-30 backdrop-blur-md" style={{ background: "color-mix(in oklab, var(--bg) 88%, transparent)" }}>
         <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3 sm:gap-6">
           <div className="flex items-center gap-3 min-w-0">
-            <span
-              className="inline-flex h-8 w-8 items-center justify-center rounded shrink-0"
-              style={{ background: "var(--primary-soft)", color: "var(--primary)" }}
-            >
-              <Activity size={15} />
-            </span>
-            <div className="min-w-0">
+            <Image
+              src="/logo-upsa.svg"
+              alt="UPSA"
+              width={164}
+              height={56}
+              priority
+              className="h-8 w-auto shrink-0"
+            />
+            <div className="min-w-0 hidden sm:block">
               <div className="text-[14px] font-semibold tracking-tight truncate" style={{ color: "var(--ink)" }}>
                 Detailing Dashboard
               </div>
@@ -220,7 +224,7 @@ export default async function Home({
                       </td>
                       <td className="py-2.5 px-2">
                         <span className="tag whitespace-nowrap">
-                          <span aria-hidden className="text-[13px] leading-none">{countryFlag(u.country)}</span>
+                          <Flag country={u.country} />
                           {u.country}
                         </span>
                       </td>
