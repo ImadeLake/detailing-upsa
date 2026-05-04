@@ -58,7 +58,8 @@ export function DateRangePicker({
   const [start, setStart] = useState<Iso | undefined>(defaultFrom);
   const [end, setEnd] = useState<Iso | undefined>(defaultTo);
   const [hover, setHover] = useState<Iso | null>(null);
-  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+  const [coords, setCoords] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [isNarrow, setIsNarrow] = useState(false);
   const [view, setView] = useState<Date>(() => {
     const d = parseIso(defaultFrom) ?? new Date();
     return startOfMonth(d);
@@ -86,7 +87,14 @@ export function DateRangePicker({
       const btn = buttonRef.current;
       if (!btn) return;
       const rect = btn.getBoundingClientRect();
-      setCoords({ top: rect.bottom + 8, left: rect.left });
+      const vw = window.innerWidth;
+      const narrow = vw < 640;
+      setIsNarrow(narrow);
+      const margin = 12;
+      const desiredWidth = narrow ? Math.min(vw - margin * 2, 360) : 560;
+      const maxLeft = vw - desiredWidth - margin;
+      const left = Math.max(margin, Math.min(rect.left, maxLeft));
+      setCoords({ top: rect.bottom + 8, left, width: desiredWidth });
     };
     update();
     window.addEventListener("resize", update);
@@ -143,7 +151,7 @@ export function DateRangePicker({
         ref={buttonRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="input inline-flex items-center gap-2 min-w-[260px]"
+        className="input inline-flex items-center gap-2 w-full sm:w-auto sm:min-w-[260px]"
         aria-expanded={open}
       >
         <CalendarRange size={13} style={{ color: "var(--ink-mute)" }} />
@@ -160,7 +168,9 @@ export function DateRangePicker({
               top: coords.top,
               left: coords.left,
               zIndex: 1000,
-              width: 560,
+              width: coords.width,
+              maxHeight: "calc(100dvh - 24px)",
+              overflowY: "auto",
             }}
           >
             <div className="flex items-center justify-between mb-2 px-1">
@@ -185,7 +195,7 @@ export function DateRangePicker({
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className={isNarrow ? "grid grid-cols-1 gap-4" : "grid grid-cols-2 gap-4"}>
               <Month
                 month={view}
                 start={start}
@@ -194,14 +204,16 @@ export function DateRangePicker({
                 onPick={onPick}
                 onHover={setHover}
               />
-              <Month
-                month={addMonths(view, 1)}
-                start={start}
-                end={end}
-                hover={hover}
-                onPick={onPick}
-                onHover={setHover}
-              />
+              {!isNarrow && (
+                <Month
+                  month={addMonths(view, 1)}
+                  start={start}
+                  end={end}
+                  hover={hover}
+                  onPick={onPick}
+                  onHover={setHover}
+                />
+              )}
             </div>
 
             <div className="mt-3 pt-3 flex items-center justify-between gap-3" style={{ borderTop: "1px solid var(--hairline)" }}>

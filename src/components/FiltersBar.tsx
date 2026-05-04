@@ -42,8 +42,8 @@ export function FiltersBar({
   }, [from, to, countries, router]);
 
   return (
-    <div className="card card-elevated p-4 flex flex-wrap items-end gap-3">
-      <div className="flex flex-col">
+    <div className="card card-elevated p-4 flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3">
+      <div className="flex flex-col min-w-0">
         <span className="label mb-1">Plage de dates</span>
         <DateRangePicker
           defaultFrom={defaultFrom}
@@ -54,7 +54,7 @@ export function FiltersBar({
           }}
         />
       </div>
-      <div className="flex flex-col">
+      <div className="flex flex-col min-w-0">
         <span className="label mb-1">Pays</span>
         <CountriesMultiSelect
           options={countryOptions}
@@ -62,8 +62,8 @@ export function FiltersBar({
           onChange={setCountries}
         />
       </div>
-      <div className="ml-auto">
-        <Link href="/" className="btn-ghost inline-flex items-center gap-2">
+      <div className="sm:ml-auto">
+        <Link href="/" className="btn-ghost inline-flex items-center gap-2 w-full sm:w-auto justify-center">
           <RefreshCcw size={13} /> Réinitialiser
         </Link>
       </div>

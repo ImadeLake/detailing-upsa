@@ -19,7 +19,7 @@ import {
   listCountries,
   type Filters,
 } from "@/lib/queries";
-import { formatDuration, formatNumber } from "@/lib/format";
+import { countryFlag, formatDuration, formatNumber } from "@/lib/format";
 import { AdvDurationPie, MonthlyChart, HBarChart } from "@/components/Charts";
 import { AdvGrid } from "@/components/AdvGrid";
 import { FiltersBar } from "@/components/FiltersBar";
@@ -78,35 +78,35 @@ export default async function Home({
     <div className="app-bg min-h-screen">
       {/* ─── Header ────────────────────────────────────────── */}
       <header className="hairline-bottom sticky top-0 z-30 backdrop-blur-md" style={{ background: "color-mix(in oklab, var(--bg) 88%, transparent)" }}>
-        <div className="mx-auto max-w-[1320px] px-8 py-3 flex items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
+        <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3 sm:gap-6">
+          <div className="flex items-center gap-3 min-w-0">
             <span
-              className="inline-flex h-8 w-8 items-center justify-center rounded"
+              className="inline-flex h-8 w-8 items-center justify-center rounded shrink-0"
               style={{ background: "var(--primary-soft)", color: "var(--primary)" }}
             >
               <Activity size={15} />
             </span>
-            <div>
-              <div className="text-[14px] font-semibold tracking-tight" style={{ color: "var(--ink)" }}>
+            <div className="min-w-0">
+              <div className="text-[14px] font-semibold tracking-tight truncate" style={{ color: "var(--ink)" }}>
                 Detailing Dashboard
               </div>
-              <div className="text-[11.5px] mt-0.5" style={{ color: "var(--ink-mute)" }}>
+              <div className="text-[11.5px] mt-0.5 truncate" style={{ color: "var(--ink-mute)" }}>
                 {formatRangeLabel(fromVal, toVal)}
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <ImportButton />
             <form action={logoutAction}>
-              <button className="btn-ghost inline-flex items-center gap-2">
-                <LogOut size={13} /> Déconnexion
+              <button className="btn-ghost inline-flex items-center gap-2" aria-label="Déconnexion">
+                <LogOut size={13} /> <span className="hidden sm:inline">Déconnexion</span>
               </button>
             </form>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1320px] px-8 py-8 space-y-8">
+      <main className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
         {/* ─── Filtres ───────────────────────────────────────── */}
         <Reveal as="section">
           <FiltersBar
@@ -219,7 +219,10 @@ export default async function Home({
                         </div>
                       </td>
                       <td className="py-2.5 px-2">
-                        <span className="tag">{u.country}</span>
+                        <span className="tag whitespace-nowrap">
+                          <span aria-hidden className="text-[13px] leading-none">{countryFlag(u.country)}</span>
+                          {u.country}
+                        </span>
                       </td>
                       <td className="py-2.5 px-2 text-right mono tabular-nums" style={{ color: "var(--ink)" }}>
                         {formatNumber(u.events)}

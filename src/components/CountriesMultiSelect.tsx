@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown, Globe2, X } from "lucide-react";
+import { countryFlag } from "@/lib/format";
 
 export function CountriesMultiSelect({
   options,
@@ -30,10 +31,15 @@ export function CountriesMultiSelect({
       const btn = buttonRef.current;
       if (!btn) return;
       const rect = btn.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const margin = 12;
+      const desiredWidth = Math.min(Math.max(rect.width, 288), vw - margin * 2);
+      const maxLeft = vw - desiredWidth - margin;
+      const left = Math.max(margin, Math.min(rect.left, maxLeft));
       setCoords({
         top: rect.bottom + 8,
-        left: rect.left,
-        width: Math.max(rect.width, 288),
+        left,
+        width: desiredWidth,
       });
     };
     update();
@@ -88,7 +94,7 @@ export function CountriesMultiSelect({
     valueArr.length === 0
       ? "Tous les pays"
       : valueArr.length === 1
-      ? valueArr[0]
+      ? `${countryFlag(valueArr[0])} ${valueArr[0]}`
       : `${valueArr.length} pays`;
 
   return (
@@ -102,7 +108,7 @@ export function CountriesMultiSelect({
         ref={buttonRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="input inline-flex items-center gap-2 min-w-[200px]"
+        className="input inline-flex items-center gap-2 w-full sm:w-auto sm:min-w-[200px]"
         aria-expanded={open}
       >
         <Globe2 size={13} style={{ color: "var(--ink-mute)" }} />
@@ -119,13 +125,14 @@ export function CountriesMultiSelect({
         createPortal(
           <div
             ref={popoverRef}
-            className="card card-elevated p-2 max-h-80 overflow-auto"
+            className="card card-elevated p-2 overflow-auto"
             role="listbox"
             style={{
               position: "fixed",
               top: coords.top,
               left: coords.left,
               width: coords.width,
+              maxHeight: "min(20rem, calc(100dvh - " + (coords.top + 12) + "px))",
               zIndex: 1000,
             }}
           >
@@ -166,6 +173,7 @@ export function CountriesMultiSelect({
                         >
                           {checked && <Check size={11} strokeWidth={3} />}
                         </span>
+                        <span aria-hidden className="text-[14px] leading-none">{countryFlag(o.name)}</span>
                         <span style={{ color: "var(--ink)" }}>{o.name}</span>
                       </span>
                       <span className="mono tabular-nums text-[11.5px]" style={{ color: "var(--ink-mute)" }}>

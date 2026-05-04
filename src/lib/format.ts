@@ -17,3 +17,41 @@ export function formatDuration(seconds: number): string {
 export function formatPercent(ratio: number): string {
   return `${(ratio * 100).toFixed(1)}%`;
 }
+
+const COUNTRY_FLAGS: Record<string, string> = {
+  "Sénégal": "🇸🇳",
+  "Senegal": "🇸🇳",
+  "Côte d'Ivoire": "🇨🇮",
+  "Cote d'Ivoire": "🇨🇮",
+  "Côte d’Ivoire": "🇨🇮",
+  "Cameroun": "🇨🇲",
+  "Cameroon": "🇨🇲",
+  "Mali": "🇲🇱",
+  "Burkina Faso": "🇧🇫",
+  "Madagascar": "🇲🇬",
+  "Gabon": "🇬🇦",
+  "Bénin": "🇧🇯",
+  "Benin": "🇧🇯",
+  "Togo": "🇹🇬",
+  "Congo": "🇨🇬",
+  "République du Congo": "🇨🇬",
+  "République Démocratique du Congo": "🇨🇩",
+  "RDC": "🇨🇩",
+  "Niger": "🇳🇪",
+  "Tchad": "🇹🇩",
+  "Chad": "🇹🇩",
+  "Guinée": "🇬🇳",
+  "Guinea": "🇬🇳",
+  "Mauritanie": "🇲🇷",
+  "Maroc": "🇲🇦",
+  "Algérie": "🇩🇿",
+  "Tunisie": "🇹🇳",
+  "France": "🇫🇷",
+  "Ile Maurice": "🇲🇺",
+  "Île Maurice": "🇲🇺",
+  "Maurice": "🇲🇺",
+};
+
+export function countryFlag(name: string): string {
+  return COUNTRY_FLAGS[name] ?? "🌍";
+}

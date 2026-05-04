@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Activity, Clock } from "lucide-react";
 import {
   Bar,
@@ -36,6 +36,18 @@ const PIE_COLORS = [
 
 const AXIS_COLOR = "#8b8f95";
 const GRID_COLOR = "rgba(15, 23, 42, 0.06)";
+
+function useIsNarrow(breakpoint = 640) {
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const update = () => setNarrow(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, [breakpoint]);
+  return narrow;
+}
 
 function formatDurationShort(sec: number): string {
   if (sec < 60) return `${sec}s`;
@@ -223,12 +235,23 @@ const USERS_LINE_COLOR = "#06b6d4";
 
 export function MonthlyChart({ data, advs }: { data: MonthlyDatum[]; advs: string[] }) {
   const [metric, setMetric] = useState<"events" | "duration">("events");
+  const isNarrow = useIsNarrow();
 
   const chartData = data.map((d) => ({ month: d.month, users: d.users, ...d[metric] }));
-  const formatLeft = (v: number) =>
-    metric === "duration" ? formatDurationShort(v) : v.toLocaleString("fr-FR");
+  const formatCompact = (v: number) => {
+    if (v >= 1000) return `${Math.round(v / 100) / 10}k`;
+    return v.toLocaleString("fr-FR");
+  };
+  const formatLeft = (v: number) => {
+    if (metric === "duration") return formatDurationShort(v);
+    return isNarrow ? formatCompact(v) : v.toLocaleString("fr-FR");
+  };
   const formatTooltip = (v: number, item: TooltipItem) =>
-    item.dataKey === "users" ? v.toLocaleString("fr-FR") : formatLeft(v);
+    item.dataKey === "users"
+      ? v.toLocaleString("fr-FR")
+      : metric === "duration"
+      ? formatDurationShort(v)
+      : v.toLocaleString("fr-FR");
   const title = metric === "events" ? "Activité mensuelle" : "Temps mensuel";
   const subtitle =
     metric === "events"
@@ -236,8 +259,8 @@ export function MonthlyChart({ data, advs }: { data: MonthlyDatum[]; advs: strin
       : "Temps cumulé par mois, réparti par ADV — utilisateurs uniques en superposition";
 
   return (
-    <section className="card card-elevated p-5">
-      <header className="mb-4 flex items-start justify-between gap-4">
+    <section className="card card-elevated p-4 sm:p-5">
+      <header className="mb-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
         <div>
           <h2 className="text-[14.5px] font-semibold tracking-tight" style={{ color: "var(--ink)" }}>
             {title}
@@ -249,8 +272,8 @@ export function MonthlyChart({ data, advs }: { data: MonthlyDatum[]; advs: strin
         <MetricToggle metric={metric} onChange={setMetric} />
       </header>
       <div className="divider mb-4" />
-      <ResponsiveContainer width="100%" height={340}>
-        <ComposedChart data={chartData} margin={{ top: 8, right: 12, bottom: 0, left: 0 }} barCategoryGap="20%">
+      <ResponsiveContainer width="100%" height={isNarrow ? 280 : 340}>
+        <ComposedChart data={chartData} margin={{ top: 8, right: isNarrow ? 4 : 12, bottom: 0, left: 0 }} barCategoryGap="20%">
           <CartesianGrid stroke={GRID_COLOR} strokeDasharray="2 4" vertical={false} />
           <XAxis
             dataKey="month"
@@ -258,15 +281,15 @@ export function MonthlyChart({ data, advs }: { data: MonthlyDatum[]; advs: strin
             tickLine={false}
             axisLine={false}
             tickFormatter={formatMonth}
-            minTickGap={8}
+            minTickGap={isNarrow ? 16 : 8}
           />
           <YAxis
             yAxisId="left"
             tick={{ fontSize: 11, fill: AXIS_COLOR }}
             tickLine={false}
             axisLine={false}
-            width={64}
-            tickMargin={8}
+            width={isNarrow ? 44 : 64}
+            tickMargin={6}
             tickFormatter={formatLeft}
           />
           <YAxis
@@ -275,8 +298,8 @@ export function MonthlyChart({ data, advs }: { data: MonthlyDatum[]; advs: strin
             tick={{ fontSize: 11, fill: USERS_LINE_COLOR }}
             tickLine={false}
             axisLine={false}
-            width={48}
-            tickMargin={8}
+            width={isNarrow ? 32 : 48}
+            tickMargin={6}
             tickFormatter={(v: number) => v.toLocaleString("fr-FR")}
             allowDecimals={false}
           />
@@ -340,9 +363,10 @@ export function HBarChart({
   color?: string;
 }) {
   const gradId = `grad-bar-${color.replace("#", "")}`;
+  const isNarrow = useIsNarrow();
   return (
     <ResponsiveContainer width="100%" height={Math.max(220, data.length * 32)}>
-      <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
+      <BarChart data={data} layout="vertical" margin={{ top: 4, right: isNarrow ? 8 : 16, bottom: 0, left: 0 }}>
         <defs>
           <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stopColor={color} stopOpacity={0.65} />
@@ -362,7 +386,7 @@ export function HBarChart({
           tick={{ fontSize: 12, fill: "var(--ink-2)" }}
           tickLine={false}
           axisLine={false}
-          width={150}
+          width={isNarrow ? 96 : 150}
         />
         <Tooltip content={ChartTooltip as never} cursor={{ fill: "rgba(26, 86, 219, 0.06)" }} />
         <Bar dataKey={valueKey} fill={`url(#${gradId})`} radius={[0, 4, 4, 0]} maxBarSize={20} />
@@ -377,6 +401,7 @@ export function AdvDurationPie({
   data: { adv: string; total_duration: number; events: number }[];
 }) {
   const total = data.reduce((s, d) => s + d.total_duration, 0);
+  const isNarrow = useIsNarrow();
 
   // Inline label renderer — places the percentage inside each slice
   // (centered between innerRadius and outerRadius) so labels never
@@ -410,16 +435,16 @@ export function AdvDurationPie({
   };
 
   return (
-    <ResponsiveContainer width="100%" height={320}>
-      <PieChart margin={{ top: 16, right: 16, bottom: 16, left: 16 }}>
+    <ResponsiveContainer width="100%" height={isNarrow ? 360 : 320}>
+      <PieChart margin={{ top: 16, right: 16, bottom: isNarrow ? 24 : 16, left: 16 }}>
         <Pie
           data={data}
           dataKey="total_duration"
           nameKey="adv"
-          cx="35%"
-          cy="50%"
-          innerRadius={60}
-          outerRadius={130}
+          cx={isNarrow ? "50%" : "35%"}
+          cy={isNarrow ? "42%" : "50%"}
+          innerRadius={isNarrow ? 48 : 60}
+          outerRadius={isNarrow ? 100 : 130}
           paddingAngle={1.5}
           stroke="var(--surface)"
           strokeWidth={2}
@@ -459,10 +484,11 @@ export function AdvDurationPie({
           }) as never}
         />
         <Legend
-          layout="vertical"
-          align="right"
-          verticalAlign="middle"
+          layout={isNarrow ? "horizontal" : "vertical"}
+          align={isNarrow ? "center" : "right"}
+          verticalAlign={isNarrow ? "bottom" : "middle"}
           iconType="circle"
+          wrapperStyle={isNarrow ? { paddingTop: 8 } : undefined}
           formatter={(v: string) => (
             <span style={{ color: "var(--ink-2)", fontSize: 12, marginRight: 4 }}>{v}</span>
           )}
