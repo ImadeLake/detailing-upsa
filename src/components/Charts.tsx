@@ -402,6 +402,7 @@ export function AdvDurationPie({
 }) {
   const total = data.reduce((s, d) => s + d.total_duration, 0);
   const isNarrow = useIsNarrow();
+  const isMedium = useIsNarrow(900);
 
   // Inline label renderer — places the percentage inside each slice
   // (centered between innerRadius and outerRadius) so labels never
@@ -441,10 +442,10 @@ export function AdvDurationPie({
           data={data}
           dataKey="total_duration"
           nameKey="adv"
-          cx={isNarrow ? "50%" : "35%"}
-          cy={isNarrow ? "42%" : "50%"}
-          innerRadius={isNarrow ? 48 : 60}
-          outerRadius={isNarrow ? 100 : 130}
+          cx={isNarrow ? "50%" : isMedium ? "50%" : "35%"}
+          cy={isNarrow ? "42%" : isMedium ? "42%" : "50%"}
+          innerRadius={isNarrow ? 48 : isMedium ? 44 : 60}
+          outerRadius={isNarrow ? 100 : isMedium ? 90 : 130}
           paddingAngle={1.5}
           stroke="var(--surface)"
           strokeWidth={2}
@@ -484,11 +485,11 @@ export function AdvDurationPie({
           }) as never}
         />
         <Legend
-          layout={isNarrow ? "horizontal" : "vertical"}
-          align={isNarrow ? "center" : "right"}
-          verticalAlign={isNarrow ? "bottom" : "middle"}
+          layout={isMedium ? "horizontal" : "vertical"}
+          align={isMedium ? "center" : "right"}
+          verticalAlign={isMedium ? "bottom" : "middle"}
           iconType="circle"
-          wrapperStyle={isNarrow ? { paddingTop: 8 } : undefined}
+          wrapperStyle={isMedium ? { paddingTop: 8 } : undefined}
           formatter={(v: string) => (
             <span style={{ color: "var(--ink-2)", fontSize: 12, marginRight: 4 }}>{v}</span>
           )}
