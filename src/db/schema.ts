@@ -91,3 +91,13 @@ export const advColors = pgTable("adv_colors", {
   color: text("color").notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// Each raw ADV listed here is reported under `target` (the group name).
+export const advMerges = pgTable(
+  "adv_merges",
+  {
+    adv: text("adv").primaryKey(),
+    target: text("target").notNull(),
+  },
+  (t) => [index("adv_merges_target_idx").on(t.target)],
+);

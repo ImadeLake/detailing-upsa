@@ -12,6 +12,7 @@ import {
 import {
   getAdvColors,
   getAdvDuration,
+  getAdvMerges,
   getMonthlyTimeseries,
   getDateBounds,
   getKpis,
@@ -33,6 +34,7 @@ import { AUTH_COOKIE } from "@/lib/auth";
 import { AnimatedCounter, Reveal } from "@/components/Motion";
 import { AdvColorsProvider } from "@/components/AdvColors";
 import { ColorSettings } from "@/components/ColorSettings";
+import { MergeSettings } from "@/components/MergeSettings";
 
 export const dynamic = "force-dynamic";
 
@@ -68,7 +70,7 @@ export default async function Home({
   const filters = parseFilters(sp);
   const bounds = await getDateBounds();
 
-  const [kpis, monthly, topCountries, topUsers, advDuration, advTopPages, countryOptions, allAdvs, advColors] = await Promise.all([
+  const [kpis, monthly, topCountries, topUsers, advDuration, advTopPages, countryOptions, allAdvs, advColors, advMerges] = await Promise.all([
     getKpis(filters),
     getMonthlyTimeseries(filters),
     getTopCountries(filters),
@@ -78,13 +80,16 @@ export default async function Home({
     listCountries(),
     listAdvs(),
     getAdvColors(),
+    getAdvMerges(),
   ]);
+  // Products as shown in the charts, i.e. after merging.
+  const shownAdvs = [...new Set(allAdvs.map((adv) => advMerges[adv] ?? adv))].sort((a, b) => a.localeCompare(b));
 
   const fromVal = sp.from ?? (bounds?.min ? bounds.min.slice(0, 10) : "");
   const toVal = sp.to ?? (bounds?.max ? bounds.max.slice(0, 10) : "");
 
   return (
-    <AdvColorsProvider advs={allAdvs} initialColors={advColors}>
+    <AdvColorsProvider advs={shownAdvs} initialColors={advColors}>
     <div className="app-bg min-h-screen">
       {/* ─── Header ────────────────────────────────────────── */}
       <header className="hairline-bottom sticky top-0 z-30 backdrop-blur-md" style={{ background: "color-mix(in oklab, var(--bg) 88%, transparent)" }}>
@@ -109,6 +114,7 @@ export default async function Home({
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <ImportButton />
+            <MergeSettings advs={allAdvs} merges={advMerges} />
             <ColorSettings />
             <form action={logoutAction}>
               <button className="btn-ghost inline-flex items-center gap-2" aria-label="Déconnexion">

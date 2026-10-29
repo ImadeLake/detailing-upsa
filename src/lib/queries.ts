@@ -33,6 +33,10 @@ function maybeUserJoin(f: Filters): SQL {
   return f.countries && f.countries.length > 0 ? sql`JOIN users u ON u.id = e.user_id` : sql``;
 }
 
+// Merged ADVs (table adv_merges) are reported under their group name.
+const advMergeJoin = sql`LEFT JOIN adv_merges am ON am.adv = split_part(p.full_path, '/', 3)`;
+const advLabel = sql`COALESCE(am.target, split_part(p.full_path, '/', 3))`;
+
 export async function listCountries() {
   const rows = await db.execute<{ name: string; events: number }>(sql`
     SELECT c.name, COUNT(*)::int AS events
@@ -45,8 +49,7 @@ export async function listCountries() {
   return rows;
 }
 
-// All ADVs ever seen, unfiltered and alphabetical — gives each product a
-// stable default color regardless of the active filters.
+// All raw ADVs ever seen (before merging), unfiltered and alphabetical.
 export async function listAdvs() {
   const rows = await db.execute<{ adv: string }>(sql`
     SELECT DISTINCT split_part(full_path, '/', 3) AS adv
@@ -89,11 +92,12 @@ export async function getMonthlyTimeseries(f: Filters) {
     db.execute<{ month: string; adv: string; events: number; duration: number }>(sql`
       SELECT
         to_char(date_trunc('month', e.occurred_at), 'YYYY-MM') AS month,
-        split_part(p.full_path, '/', 3)                        AS adv,
+        ${advLabel}                                            AS adv,
         COUNT(*)::int                                          AS events,
         COALESCE(SUM(e.duration_sec), 0)::int                  AS duration
       FROM events e
       JOIN pages p ON p.id = e.page_id
+      ${advMergeJoin}
       ${maybeUserJoin(f)}
       WHERE ${rangeClause(f)} AND ${countryClause(f)}
         AND split_part(p.full_path, '/', 2) = 'ADV'
@@ -186,12 +190,13 @@ export async function getTopPagesPerAdv(f: Filters, perAdv = 8) {
   }>(sql`
     WITH agg AS (
       SELECT
-        split_part(p.full_path, '/', 3) AS adv,
+        ${advLabel}                     AS adv,
         split_part(p.full_path, '/', 4) AS page,
         COALESCE(SUM(e.duration_sec),0)::int AS total_duration,
         COUNT(*)::int                        AS events
       FROM events e
       JOIN pages p ON p.id = e.page_id
+      ${advMergeJoin}
       ${maybeUserJoin(f)}
       WHERE ${rangeClause(f)} AND ${countryClause(f)}
         AND split_part(p.full_path, '/', 2) = 'ADV'
@@ -225,11 +230,12 @@ export async function getTopPagesPerAdv(f: Filters, perAdv = 8) {
 export async function getAdvDuration(f: Filters) {
   const rows = await db.execute<{ adv: string; total_duration: number; events: number }>(sql`
     SELECT
-      split_part(p.full_path, '/', 3) AS adv,
+      ${advLabel}                           AS adv,
       COALESCE(SUM(e.duration_sec), 0)::int AS total_duration,
       COUNT(*)::int                         AS events
     FROM events e
     JOIN pages p ON p.id = e.page_id
+    ${advMergeJoin}
     ${maybeUserJoin(f)}
     WHERE ${rangeClause(f)} AND ${countryClause(f)}
       AND split_part(p.full_path, '/', 2) = 'ADV'
@@ -252,4 +258,12 @@ export async function getAdvColors(): Promise<Record<string, string>> {
     SELECT adv, color FROM adv_colors
   `);
   return Object.fromEntries(rows.map((r) => [r.adv, r.color]));
+}
+
+// Raw ADV → group name.
+export async function getAdvMerges(): Promise<Record<string, string>> {
+  const rows = await db.execute<{ adv: string; target: string }>(sql`
+    SELECT adv, target FROM adv_merges
+  `);
+  return Object.fromEntries(rows.map((r) => [r.adv, r.target]));
 }

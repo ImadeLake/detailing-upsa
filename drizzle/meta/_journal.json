@@ -15,6 +15,13 @@
       "when": 1793280921488,
       "tag": "0001_adv_colors",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793281863477,
+      "tag": "0002_adv_merges",
+      "breakpoints": true
     }
   ]
 }
