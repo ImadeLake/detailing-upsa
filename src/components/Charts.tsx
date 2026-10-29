@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Activity, Clock } from "lucide-react";
+import { ExportButton } from "./ExportButton";
+import { useAdvColors } from "./AdvColors";
 import {
   Bar,
   BarChart,
@@ -18,21 +20,6 @@ import {
   YAxis,
 } from "recharts";
 import type { MonthlyDatum } from "@/lib/queries";
-
-// Pharma-clinical palette tuned for vibrancy on a light background.
-// Saturated, high-chroma but balanced — each hue distinct from the next.
-const PIE_COLORS = [
-  "#2563eb", // bright blue
-  "#06b6d4", // cyan
-  "#10b981", // emerald
-  "#f59e0b", // amber
-  "#8b5cf6", // violet
-  "#ec4899", // pink
-  "#ef4444", // red
-  "#14b8a6", // teal
-  "#f97316", // orange
-  "#84cc16", // lime
-];
 
 const AXIS_COLOR = "#8b8f95";
 const GRID_COLOR = "rgba(15, 23, 42, 0.06)";
@@ -236,6 +223,8 @@ const USERS_LINE_COLOR = "#06b6d4";
 export function MonthlyChart({ data, advs }: { data: MonthlyDatum[]; advs: string[] }) {
   const [metric, setMetric] = useState<"events" | "duration">("events");
   const isNarrow = useIsNarrow();
+  const cardRef = useRef<HTMLElement | null>(null);
+  const { colorOf } = useAdvColors();
 
   const chartData = data.map((d) => ({ month: d.month, users: d.users, ...d[metric] }));
   const formatCompact = (v: number) => {
@@ -259,7 +248,7 @@ export function MonthlyChart({ data, advs }: { data: MonthlyDatum[]; advs: strin
       : "Temps cumulé par mois, réparti par ADV — utilisateurs uniques en superposition";
 
   return (
-    <section className="card card-elevated p-4 sm:p-5">
+    <section ref={cardRef} className="card card-elevated p-4 sm:p-5">
       <header className="mb-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
         <div>
           <h2 className="text-[14.5px] font-semibold tracking-tight" style={{ color: "var(--ink)" }}>
@@ -269,7 +258,10 @@ export function MonthlyChart({ data, advs }: { data: MonthlyDatum[]; advs: strin
             {subtitle}
           </p>
         </div>
-        <MetricToggle metric={metric} onChange={setMetric} />
+        <div className="flex items-center gap-2">
+          <MetricToggle metric={metric} onChange={setMetric} />
+          <ExportButton targetRef={cardRef} filename={title} />
+        </div>
       </header>
       <div className="divider mb-4" />
       <ResponsiveContainer width="100%" height={isNarrow ? 280 : 340}>
@@ -329,7 +321,7 @@ export function MonthlyChart({ data, advs }: { data: MonthlyDatum[]; advs: strin
                 dataKey={adv}
                 stackId="adv"
                 name={adv}
-                fill={PIE_COLORS[i % PIE_COLORS.length]}
+                fill={colorOf(adv)}
                 radius={isLast ? [3, 3, 0, 0] : [0, 0, 0, 0]}
                 maxBarSize={44}
               />
@@ -362,7 +354,7 @@ export function HBarChart({
   valueKey: string;
   color?: string;
 }) {
-  const gradId = `grad-bar-${color.replace("#", "")}`;
+  const gradId = `grad-bar-${useId().replace(/:/g, "")}`;
   const isNarrow = useIsNarrow();
   return (
     <ResponsiveContainer width="100%" height={Math.max(220, data.length * 32)}>
@@ -402,6 +394,7 @@ export function AdvDurationPie({
 }) {
   const total = data.reduce((s, d) => s + d.total_duration, 0);
   const isNarrow = useIsNarrow();
+  const { colorOf } = useAdvColors();
   const isMedium = useIsNarrow(900);
 
   // Inline label renderer — places the percentage inside each slice
@@ -452,8 +445,8 @@ export function AdvDurationPie({
           label={renderInsideLabel as never}
           labelLine={false}
         >
-          {data.map((_, i) => (
-            <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+          {data.map((d) => (
+            <Cell key={d.adv} fill={colorOf(d.adv)} />
           ))}
         </Pie>
         <Tooltip

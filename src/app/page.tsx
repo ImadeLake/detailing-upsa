@@ -17,6 +17,7 @@ import {
   getTopCountries,
   getTopPagesPerAdv,
   getTopUsers,
+  listAdvs,
   listCountries,
   type Filters,
 } from "@/lib/queries";
@@ -24,10 +25,13 @@ import { formatDuration, formatNumber } from "@/lib/format";
 import { Flag } from "@/components/Flag";
 import { AdvDurationPie, MonthlyChart, HBarChart } from "@/components/Charts";
 import { AdvGrid } from "@/components/AdvGrid";
+import { ExportableCard } from "@/components/ExportableCard";
 import { FiltersBar } from "@/components/FiltersBar";
 import { ImportButton } from "@/components/ImportButton";
 import { AUTH_COOKIE } from "@/lib/auth";
 import { AnimatedCounter, Reveal } from "@/components/Motion";
+import { AdvColorsProvider } from "@/components/AdvColors";
+import { ColorSettings } from "@/components/ColorSettings";
 
 export const dynamic = "force-dynamic";
 
@@ -63,7 +67,7 @@ export default async function Home({
   const filters = parseFilters(sp);
   const bounds = await getDateBounds();
 
-  const [kpis, monthly, topCountries, topUsers, advDuration, advTopPages, countryOptions] = await Promise.all([
+  const [kpis, monthly, topCountries, topUsers, advDuration, advTopPages, countryOptions, allAdvs] = await Promise.all([
     getKpis(filters),
     getMonthlyTimeseries(filters),
     getTopCountries(filters),
@@ -71,12 +75,14 @@ export default async function Home({
     getAdvDuration(filters),
     getTopPagesPerAdv(filters, 8),
     listCountries(),
+    listAdvs(),
   ]);
 
   const fromVal = sp.from ?? (bounds?.min ? bounds.min.slice(0, 10) : "");
   const toVal = sp.to ?? (bounds?.max ? bounds.max.slice(0, 10) : "");
 
   return (
+    <AdvColorsProvider advs={allAdvs}>
     <div className="app-bg min-h-screen">
       {/* ─── Header ────────────────────────────────────────── */}
       <header className="hairline-bottom sticky top-0 z-30 backdrop-blur-md" style={{ background: "color-mix(in oklab, var(--bg) 88%, transparent)" }}>
@@ -101,6 +107,7 @@ export default async function Home({
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <ImportButton />
+            <ColorSettings />
             <form action={logoutAction}>
               <button className="btn-ghost inline-flex items-center gap-2" aria-label="Déconnexion">
                 <LogOut size={13} /> <span className="hidden sm:inline">Déconnexion</span>
@@ -162,20 +169,20 @@ export default async function Home({
         {/* ─── Géographie + Répartition ──────────────────────── */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Reveal as="div" delay={0.04}>
-            <Card title="Top pays" subtitle="Volume de clics par pays" icon={<Globe2 size={14} />}>
+            <ExportableCard title="Top pays" subtitle="Volume de clics par pays" icon={<Globe2 size={14} />}>
               <HBarChart
                 data={topCountries as unknown as Record<string, string | number>[]}
                 labelKey="country"
                 valueKey="events"
               />
-            </Card>
+            </ExportableCard>
           </Reveal>
           <Reveal as="div" delay={0.10}>
-            <Card title="Temps par ADV" subtitle="Somme des durées sur Produits/ADV/…">
+            <ExportableCard title="Temps par ADV" subtitle="Somme des durées sur Produits/ADV/…">
               <AdvDurationPie
                 data={advDuration as { adv: string; total_duration: number; events: number }[]}
               />
-            </Card>
+            </ExportableCard>
           </Reveal>
         </section>
 
@@ -255,6 +262,7 @@ export default async function Home({
         </footer>
       </main>
     </div>
+    </AdvColorsProvider>
   );
 }
 

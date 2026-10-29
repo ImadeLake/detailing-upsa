@@ -45,6 +45,19 @@ export async function listCountries() {
   return rows;
 }
 
+// All ADVs ever seen, unfiltered and alphabetical — gives each product a
+// stable default color regardless of the active filters.
+export async function listAdvs() {
+  const rows = await db.execute<{ adv: string }>(sql`
+    SELECT DISTINCT split_part(full_path, '/', 3) AS adv
+    FROM pages
+    WHERE split_part(full_path, '/', 2) = 'ADV'
+      AND split_part(full_path, '/', 3) LIKE 'ADV %'
+    ORDER BY adv
+  `);
+  return rows.map((r) => r.adv);
+}
+
 export async function getKpis(f: Filters) {
   const [row] = await db.execute<{
     events: number;
