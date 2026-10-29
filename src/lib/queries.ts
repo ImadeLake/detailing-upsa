@@ -246,3 +246,10 @@ export async function getDateBounds() {
   `);
   return row;
 }
+
+export async function getAdvColors(): Promise<Record<string, string>> {
+  const rows = await db.execute<{ adv: string; color: string }>(sql`
+    SELECT adv, color FROM adv_colors
+  `);
+  return Object.fromEntries(rows.map((r) => [r.adv, r.color]));
+}

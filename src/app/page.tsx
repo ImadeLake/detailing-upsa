@@ -10,6 +10,7 @@ import {
   WifiOff,
 } from "lucide-react";
 import {
+  getAdvColors,
   getAdvDuration,
   getMonthlyTimeseries,
   getDateBounds,
@@ -67,7 +68,7 @@ export default async function Home({
   const filters = parseFilters(sp);
   const bounds = await getDateBounds();
 
-  const [kpis, monthly, topCountries, topUsers, advDuration, advTopPages, countryOptions, allAdvs] = await Promise.all([
+  const [kpis, monthly, topCountries, topUsers, advDuration, advTopPages, countryOptions, allAdvs, advColors] = await Promise.all([
     getKpis(filters),
     getMonthlyTimeseries(filters),
     getTopCountries(filters),
@@ -76,13 +77,14 @@ export default async function Home({
     getTopPagesPerAdv(filters, 8),
     listCountries(),
     listAdvs(),
+    getAdvColors(),
   ]);
 
   const fromVal = sp.from ?? (bounds?.min ? bounds.min.slice(0, 10) : "");
   const toVal = sp.to ?? (bounds?.max ? bounds.max.slice(0, 10) : "");
 
   return (
-    <AdvColorsProvider advs={allAdvs}>
+    <AdvColorsProvider advs={allAdvs} initialColors={advColors}>
     <div className="app-bg min-h-screen">
       {/* ─── Header ────────────────────────────────────────── */}
       <header className="hairline-bottom sticky top-0 z-30 backdrop-blur-md" style={{ background: "color-mix(in oklab, var(--bg) 88%, transparent)" }}>

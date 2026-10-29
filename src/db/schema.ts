@@ -85,3 +85,9 @@ export const events = pgTable(
     index("events_page_idx").on(t.pageId),
   ],
 );
+
+export const advColors = pgTable("adv_colors", {
+  adv: text("adv").primaryKey(),
+  color: text("color").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
